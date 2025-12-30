@@ -8,8 +8,12 @@ from IPython.display import display
 from pandarallel import pandarallel
 from pathlib import Path
 import os
+import json
 
-pandarallel.initialize(nb_workers=min(os.cpu_count(), 12),progress_bar=True)
+# Ensure at least 1 worker, handle case where os.cpu_count() returns None or 0
+cpu_count = os.cpu_count() or 1
+nb_workers = max(1, min(cpu_count, 12))
+pandarallel.initialize(nb_workers=nb_workers, progress_bar=True)
 
 """### Useful functions"""
 
@@ -25,13 +29,22 @@ def extract_multipolygon_city(file_path,city_name):
         Returns:
             feature (geopandas): The geopandas dataframe for that city
     '''
-    d = pd.read_json(file_path)
-    for feature in d["features"]:
-        if feature[0]['properties']['city'] == city_name:
-            return gpd.GeoDataFrame.from_features(feature)
+    # Read the geojson file - it's an array of FeatureCollections
+    with open(file_path, 'r') as f:
+        data = json.load(f)
+    
+    # Iterate through each FeatureCollection in the array
+    for feature_collection in data:
+        if feature_collection.get("type") == "FeatureCollection":
+            # Check each feature in the FeatureCollection
+            for feature in feature_collection.get("features", []):
+                if feature.get("properties", {}).get("city") == city_name:
+                    return gpd.GeoDataFrame.from_features([feature], crs="EPSG:4326")
+    
+    raise ValueError(f"City '{city_name}' not found in {file_path}")
 
 def generate_grid(selected_city,grid_size,plot=True):
-  gdf = extract_multipolygon_city(file_path='../city_multipolygons.geojson',city_name=selected_city)
+  gdf = extract_multipolygon_city(file_path='./city_multipolygons.geojson',city_name=selected_city)
 
   bbox = gdf.total_bounds
   min_lon, min_lat, max_lon, max_lat = (bbox[2],bbox[1],bbox[0],bbox[3])
@@ -79,7 +92,7 @@ def find_polygon(row,df):
 def generate_crime_files_with_grid_num(city_name,city_folder,crimes_list,output_folder,grid_size=50):
 
   # load crime dataset for that city
-  df_crimes = pd.read_csv(f'Crime_data_outputs/5_years/{city_folder}_selected_crimes_clean_all.csv',index_col=0)
+  df_crimes = pd.read_csv(f'Crime_data_outputs/{city_folder}_selected_crimes_clean_all.csv',index_col=0)
 
   # generate grid boxes
   min_lon, min_lat, max_lon, max_lat, grid_bboxes = generate_grid(selected_city=city_name,grid_size=grid_size,plot=False)
@@ -107,31 +120,9 @@ def generate_crime_files_with_grid_num(city_name,city_folder,crimes_list,output_
     df_final.to_csv(f'Crime_data_outputs/{output_folder}/{city_folder}_{crime}_clean_all_grid.csv')
     print("Final dataset saved!\n")
 
-generate_crime_files_with_grid_num(city_name = 'Baltimore',
-                                   city_folder = 'Baltimore',
-                                   crimes_list = ['Burglary', 'Motor Vehicle Theft', 'Assault', 'Robbery', 'Homicide'],
+generate_crime_files_with_grid_num(city_name = 'Arapiraca',
+                                   city_folder = 'Arapiraca',
+                                   crimes_list = ['Burglary', 'Motor Vehicle Theft', 'Robbery'],
                                    output_folder = 'Grid_cells_0.2gu/Clean_all_grid',
                                    grid_size=39,
-                                   )
-
-generate_crime_files_with_grid_num(city_name = 'Chicago',
-                                   city_folder = 'Chicago',
-                                   crimes_list = ['Burglary', 'Motor Vehicle Theft', 'Assault', 'Robbery', 'Homicide'],
-                                   output_folder = 'Grid_cells_0.2gu/Clean_all_grid',
-                                   grid_size=85,
-                                   )
-
-generate_crime_files_with_grid_num(city_name = 'Los Angeles',
-                                   city_folder = 'Los_Angeles',
-                                   crimes_list = ['Burglary', 'Motor Vehicle Theft', 'Assault', 'Robbery', 'Homicide'],
-                                   #input_folder = 'Crime_data_outputs',
-                                   output_folder = 'Grid_cells_0.2gu/Clean_all_grid',
-                                   grid_size=133,
-                                   )
-
-generate_crime_files_with_grid_num(city_name = 'Philadelphia',
-                                   city_folder = 'Philadelphia',
-                                   crimes_list = ['Burglary', 'Motor Vehicle Theft', 'Assault', 'Robbery', 'Homicide'],
-                                   output_folder = 'Grid_cells_0.2gu/Clean_all_grid',
-                                   grid_size=64,
                                    )

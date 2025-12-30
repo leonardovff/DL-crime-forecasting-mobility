@@ -96,5 +96,5 @@ for i, entry in df_years.iterrows():
 df_clean.reset_index(drop=True,inplace=True)
 
 # save final dataset
-df_clean.to_csv("./preprocessing/crime_data/Preprocessing_raw_data_per_city/Maceio/arapiraca_crimes_clean_2012_to_2020.csv")
+df_clean.to_csv("./preprocessing/crime_data/Preprocessing_raw_data_per_city/Arapiraca/Arapiraca_crimes_clean_2012_to_2020.csv")
 print("Shape final dataframe after geo cleaning: ", df_clean.shape)

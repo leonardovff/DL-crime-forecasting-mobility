@@ -5,7 +5,10 @@ from pandarallel import pandarallel
 from pathlib import Path
 import os
 
-pandarallel.initialize(nb_workers=min(os.cpu_count(), 12),progress_bar=True)
+# Ensure at least 1 worker, handle case where os.cpu_count() returns None or 0
+cpu_count = os.cpu_count() or 1
+nb_workers = max(1, min(cpu_count, 12))
+pandarallel.initialize(nb_workers=nb_workers, progress_bar=True)
 
 """### 1. Generate yearly matrix of crime counts per hour (better run in a cluster bc otherwise you might run out of RAM)"""
 
@@ -77,40 +80,13 @@ def make_final_grid_files_year_crime(city_folder,crime,in_out_folder,years,grid_
     df_final.to_csv(f'{in_out_folder}/Final_grid/{city_folder}_{crime}_{y}_final_grid.csv')
     print("Final dataset saved!")
 
-for crime_type in ['Burglary','Motor Vehicle Theft', 'Assault', 'Robbery', 'Homicide']:
+for crime_type in ['Burglary','Motor Vehicle Theft', 'Robbery']:
   print(f"######### {crime_type} #########")
-  make_final_grid_files_year_crime(city_folder='Baltimore',
+  make_final_grid_files_year_crime(city_folder='Arapiraca',
                                    crime=crime_type,
                                    in_out_folder='Crime_data_outputs/Grid_cells_0.2gu',
-                                   years=[2019,2020,2021,2022,2023],
+                                   years=[2012,2013,2014,2015,2016,2017,2018,2019],
                                    grid_size=39)
-  print("\n")
-
-for crime_type in ['Burglary','Motor Vehicle Theft', 'Assault', 'Robbery', 'Homicide']:
-  print(f"######### {crime_type} #########")
-  make_final_grid_files_year_crime(city_folder='Chicago',
-                                   crime=crime_type,
-                                   in_out_folder='Crime_data_outputs/Grid_cells_0.2gu',
-                                   years=[2019,2020,2021,2022,2023],
-                                   grid_size=85)
-  print("\n")
-
-for crime_type in ['Burglary','Motor Vehicle Theft', 'Robbery', 'Homicide','Assault']:
-  print(f"######### {crime_type} #########")
-  make_final_grid_files_year_crime(city_folder='Los_Angeles',
-                                   crime=crime_type,
-                                   in_out_folder='Crime_data_outputs/Grid_cells_0.2gu',
-                                   years=[2019,2020,2021,2022,2023],
-                                   grid_size=133)
-  print("\n")
-
-for crime_type in ['Burglary','Motor Vehicle Theft', 'Robbery', 'Homicide','Assault']:
-  print(f"######### {crime_type} #########")
-  make_final_grid_files_year_crime(city_folder='Philadelphia',
-                                   crime=crime_type,
-                                   in_out_folder='Crime_data_outputs/Grid_cells_0.2gu',
-                                   years=[2019,2020,2021,2022,2023],
-                                   grid_size=64)
   print("\n")
 
 """### 2. Make final grid matrix for each city for each crime all years together"""
@@ -137,46 +113,12 @@ def make_final_grid_city_crime(city_folder,crime,in_out_folder,years):
   print("Shape final dataframe: ", df_all.T.shape)
   print("File saved!\n")
 
-for city_folder in ['Baltimore']:
+for city_folder in ['Arapiraca']:
   print(f"####### CITY: {city_folder} #######")
-  for crime_type in ['Burglary','Motor Vehicle Theft', 'Assault', 'Robbery', 'Homicide']:
+  for crime_type in ['Burglary','Motor Vehicle Theft', 'Robbery']:
     print(f"### {crime_type} ###")
     make_final_grid_city_crime(city_folder=city_folder,
                                crime=crime_type,
                                in_out_folder='Crime_data_outputs/Grid_cells_0.2gu',
-                               years=[2019,2020,2021,2022,2023],
+                               years=[2012,2013,2014,2015,2016,2017,2018,2019],
                                )
-  print("\n")
-
-for city_folder in ['Chicago']:
-  print(f"####### CITY: {city_folder} #######")
-  for crime_type in ['Burglary','Motor Vehicle Theft', 'Assault', 'Robbery', 'Homicide']:
-    print(f"### {crime_type} ###")
-    make_final_grid_city_crime(city_folder=city_folder,
-                               crime=crime_type,
-                               in_out_folder='Crime_data_outputs/Grid_cells_0.2gu',
-                               years=[2019,2020,2021,2022,2023],
-                               )
-  print("\n")
-
-for city_folder in ['Los_Angeles']: # might need to run this one in a cluster if you run out of RAM
-  print(f"####### CITY: {city_folder} #######")
-  for crime_type in ['Burglary','Motor Vehicle Theft', 'Assault', 'Robbery', 'Homicide']:
-    print(f"### {crime_type} ###")
-    make_final_grid_city_crime(city_folder=city_folder,
-                               crime=crime_type,
-                               in_out_folder='Crime_data_outputs/Grid_cells_0.2gu',
-                               years=[2019,2020,2021,2022,2023],
-                               )
-  print("\n")
-
-for city_folder in ['Philadelphia']:
-  print(f"####### CITY: {city_folder} #######")
-  for crime_type in ['Burglary','Motor Vehicle Theft', 'Assault', 'Robbery', 'Homicide']:
-    print(f"### {crime_type} ###")
-    make_final_grid_city_crime(city_folder=city_folder,
-                               crime=crime_type,
-                               in_out_folder='Crime_data_outputs/Grid_cells_0.2gu',
-                               years=[2019,2020,2021,2022,2023],
-                               )
-  print("\n")

@@ -288,11 +288,11 @@ def make_datasets_of_submatrices_final(city_folder,granularity,gu,grid_size,grid
     print("\nDatasets saved!\n")
 
 if sys.argv[6] == 'all':
-  crimes_l = ['Assault', 'Homicide', 'Robbery','Burglary', 'Motor Vehicle Theft']
+  crimes_l = ['Robbery','Burglary', 'Motor Vehicle Theft']
 elif sys.argv[6] == 'property':
   crimes_l = ['Burglary', 'Motor Vehicle Theft']
 elif sys.argv[6] == 'violent':
-  crimes_l = ['Assault', 'Homicide', 'Robbery',]
+  crimes_l = ['Robbery',]
 
 print(f"Generate: {sys.argv[1]},{sys.argv[6]}")
 

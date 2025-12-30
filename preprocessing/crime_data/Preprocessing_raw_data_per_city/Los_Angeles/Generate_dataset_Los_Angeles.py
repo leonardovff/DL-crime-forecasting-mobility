@@ -1,6 +1,7 @@
 import pandas as pd
 import geopandas as gpd
 from shapely.geometry import Point
+import json
 
 def extract_multipolygon_city(file_path,city_name):
     '''
@@ -14,10 +15,19 @@ def extract_multipolygon_city(file_path,city_name):
         Returns:
             feature (geopandas): The geopandas dataframe for that city
     '''
-    d = pd.read_json(file_path)
-    for feature in d["features"]:
-        if feature[0]['properties']['city'] == city_name:
-            return gpd.GeoDataFrame.from_features(feature)
+    # Read the geojson file - it's an array of FeatureCollections
+    with open(file_path, 'r') as f:
+        data = json.load(f)
+    
+    # Iterate through each FeatureCollection in the array
+    for feature_collection in data:
+        if feature_collection.get("type") == "FeatureCollection":
+            # Check each feature in the FeatureCollection
+            for feature in feature_collection.get("features", []):
+                if feature.get("properties", {}).get("city") == city_name:
+                    return gpd.GeoDataFrame.from_features([feature], crs="EPSG:4326")
+    
+    raise ValueError(f"City '{city_name}' not found in {file_path}")
 
 """### 1. Create preprocessed dataset for 2019"""
 
